@@ -33,7 +33,7 @@ export const getExistingTour = async ({ city, country }) => {
 export const generateTourResponse = async ({ city, country }) => {
 	const query = `Find a ${city} in this ${country}.
         If ${city} in this ${country} exists, create a list of things families can do in this ${city},${country}. 
-        Once you have a list, create a one-day tour. Response should be in the following JSON format: 
+        Return at least 5 things to do and at max 10. Once you have a list, create a one-day tour. Response should be in the following JSON format: 
         {
         "tour": {
             "city": "${city}",
