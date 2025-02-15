@@ -7,7 +7,8 @@ import TourInfo from '@/components/TourInfo';
 import {
 	generateTourResponse,
 	getExistingTour,
-	createNewTour
+	createNewTour,
+	toProperCase
 } from '@/utils/actions';
 
 const NewTour = () => {
@@ -45,6 +46,12 @@ const NewTour = () => {
 
 		const formData = new FormData(e.currentTarget);
 		const destination = Object.fromEntries(formData.entries());
+		// const destination = Object.fromEntries(
+		// 	Array.from(formData.entries()).map(([key, value]) => [
+		// 		key,
+		// 		typeof value === 'string' ? toProperCase(value) : value
+		// 	])
+		// );
 
 		createTour(destination);
 	};

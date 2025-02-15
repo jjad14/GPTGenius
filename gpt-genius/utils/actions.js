@@ -28,6 +28,7 @@ export const generateChatResponse = async (chatMessages) => {
 };
 
 export const generateTourResponse = async ({ city, country }) => {
+	// Prompt to generate tour
 	const query = `Find a ${city} in this ${country}.
         If ${city} in this ${country} exists, create a list of things families can do in this ${city},${country}. 
         Return at least 5 things to do and at max 10. Once you have a list, create a one-day tour. Response should be in the following JSON format: 
@@ -68,8 +69,7 @@ export const generateTourResponse = async ({ city, country }) => {
 };
 
 export const getExistingTour = async ({ city, country }) => {
-	console.log('Getting existing tour');
-
+	// Find tour using city and country
 	return prisma.tour.findUnique({
 		where: {
 			city_country: {
@@ -81,8 +81,52 @@ export const getExistingTour = async ({ city, country }) => {
 };
 
 export const createNewTour = async (tour) => {
-	console.log('Creating new tour');
+	// Create new tour in database
 	return prisma.tour.create({
 		data: tour
 	});
+};
+
+export const getAllTours = async (searchTerm) => {
+	// if no search term, return all in ascending order
+	if (!searchTerm) {
+		const tours = await prisma.tour.findMany({
+			orderBy: {
+				city: 'asc'
+			}
+		});
+
+		return tours;
+	}
+
+	// if search term, search by city or country and return results in ascending order
+	const tours = await prisma.tour.findMany({
+		where: {
+			OR: [
+				{
+					city: {
+						contains: searchTerm
+					}
+				},
+				{
+					country: {
+						contains: searchTerm
+					}
+				}
+			]
+		},
+		orderBy: {
+			city: 'asc'
+		}
+	});
+	return tours;
+};
+
+export const toProperCase = (str) => {
+	return str
+		.split(' ')
+		.map(
+			(word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+		)
+		.join(' ');
 };
