@@ -11,14 +11,28 @@ import {
 } from '@/utils/actions';
 
 const NewTour = () => {
+	const queryClient = useQueryClient();
 	const {
 		mutate: createTour,
 		isPending,
 		data: tour
 	} = useMutation({
 		mutationFn: async (destination) => {
+			// Check if tour already exists
+			const existingTour = await getExistingTour(destination);
+
+			console.log(existingTour);
+
+			if (existingTour) return existingTour;
+
 			const newTour = await generateTourResponse(destination);
 			if (newTour) {
+				// Create new tour
+				await createNewTour(newTour);
+
+				// Invalidate cache
+				queryClient.invalidateQueries({ queryKey: ['tours'] });
+
 				return newTour;
 			}
 			toast.error('Invalid Input. No matching city was found...');
