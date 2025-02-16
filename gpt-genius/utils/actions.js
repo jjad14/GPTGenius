@@ -130,6 +130,22 @@ export const getSingleTour = async (id) => {
 	});
 };
 
+export const generateTourImage = async ({ city, country }) => {
+	try {
+		const tourImage = await openai.images.generate({
+			prompt: `a panoramic view of ${city} ${country}`,
+			n: 1,
+			size: '512x512',
+			model: 'dall-e-2',
+			quality: 'standard'
+		});
+		return tourImage?.data[0]?.url;
+	} catch (error) {
+		console.log('There was an error generating the image: ', error);
+		return null;
+	}
+};
+
 export const toProperCase = (str) => {
 	return str
 		.split(' ')
