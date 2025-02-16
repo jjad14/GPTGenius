@@ -11,15 +11,13 @@ export const generateChatResponse = async (chatMessages) => {
 	try {
 		const response = await openai.chat.completions.create({
 			messages: [
-				{ role: 'system', content: 'You are a helpful assistant.' }, // Were we set what the model should be
+				{ role: 'system', content: 'You are a helpful assistant.' },
 				...chatMessages
 			],
 			model: 'gpt-4o-mini',
-			temperature: 0
+			temperature: 0,
+			max_tokens: 100
 		});
-
-		console.log(response.choices[0].message);
-		console.log(response);
 
 		return response.choices[0].message;
 	} catch (error) {
