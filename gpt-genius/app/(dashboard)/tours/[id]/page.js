@@ -4,21 +4,33 @@ import { redirect } from 'next/navigation';
 import TourInfo from '@/components/TourInfo';
 import { getSingleTour, generateTourImage } from '@/utils/actions';
 import Image from 'next/image';
+import axios from 'axios';
+
+const url = `https://api.unsplash.com/search/photos?client_id=${process.env.UNSPLASH_API_KEY}&query=`;
 
 const SingleTourPage = async ({ params }) => {
 	// Get the tour using the id
-	const tour = await getSingleTour(params.id);
+	// const tour = await getSingleTour(params.id);
+	const tour = await prisma.tour.findUnique({
+		where: {
+			id: params.id
+		}
+	});
 
 	// If the tour is not found, redirect to the tours page
 	if (!tour) {
 		redirect('/tours');
 	}
 
-	// Generate image of the tour
-	const tourImage = await generateTourImage({
-		city: tour.city,
-		country: tour.country
-	});
+	// Generate image of the tour using Unsplash
+	const { data } = await axios(`${url}${tour.city}`);
+	const tourImage = data?.results[0]?.urls?.raw;
+
+	// Generate image of the tour using DALL-E 2 Model
+	// const tourImage = await generateTourImage({
+	// 	city: tour.city,
+	// 	country: tour.country
+	// });
 	return (
 		<div>
 			<Link href='/tours' className='btn btn-secondary mb-12'>
