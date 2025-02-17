@@ -20,7 +20,10 @@ export const generateChatResponse = async (chatMessages) => {
 			max_tokens: 100
 		});
 
-		return response.choices[0].message;
+		return {
+			message: response.choices[0].message,
+			tokens: response.usage.total_tokens
+		};
 	} catch (error) {
 		return null;
 	}
@@ -60,7 +63,6 @@ export const generateTourResponse = async ({ city, country }) => {
 			return null;
 		}
 
-		// return tourData.tour;
 		return { tour: tourData.tour, tokens: response.usage.total_tokens };
 	} catch (error) {
 		console.log(error);

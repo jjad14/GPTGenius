@@ -1,25 +1,42 @@
 'use client';
 
-import { generateChatResponse } from '@/utils/actions';
-import { useMutation } from '@tanstack/react-query';
 import React from 'react';
 import { useState } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import {
+	generateChatResponse,
+	fetchUserTokensById,
+	subtractTokens
+} from '@/utils/actions';
 
 const Chat = () => {
+	const { userId } = useAuth();
 	const [text, setText] = useState('');
 	const [messages, setMessages] = useState([]);
 
 	const { mutate: createMessage, isPending } = useMutation({
-		mutationFn: (query) => generateChatResponse([...messages, query]),
-		onSuccess: (data) => {
-			if (!data) {
-				toast.error('Invalid Response. Please try again.');
+		mutationFn: async (query) => {
+			const currentTokens = await fetchUserTokensById(userId);
+
+			// Check if user has enough tokens
+			if (currentTokens < 100) {
+				toast.error('Token balance is too low....');
 				return;
 			}
 
-			// Add response to messages
-			setMessages((prev) => [...prev, data]);
+			const response = await generateChatResponse([...messages, query]);
+
+			if (!response) {
+				toast.error('Something went wrong...');
+				return;
+			}
+			setMessages((prev) => [...prev, response.message]);
+
+			// Update token balance
+			const newTokens = await subtractTokens(userId, response.tokens);
+			toast.success(`${newTokens} tokens are remaining...`);
 		}
 	});
 
