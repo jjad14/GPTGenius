@@ -8,10 +8,14 @@ import {
 	generateTourResponse,
 	getExistingTour,
 	createNewTour,
-	toProperCase
+	toProperCase,
+	fetchUserTokensById,
+	subtractTokens
 } from '@/utils/actions';
+import { useAuth } from '@clerk/nextjs';
 
 const NewTour = () => {
+	const { userId } = useAuth();
 	const queryClient = useQueryClient();
 	const {
 		mutate: createTour,
@@ -22,22 +26,35 @@ const NewTour = () => {
 			// Check if tour already exists
 			const existingTour = await getExistingTour(destination);
 
-			console.log(existingTour);
-
 			if (existingTour) return existingTour;
 
-			const newTour = await generateTourResponse(destination);
-			if (newTour) {
-				// Create new tour
-				await createNewTour(newTour);
+			// check if user has enough tokens
+			const currentTokens = await fetchUserTokensById(userId);
 
-				// Invalidate cache
-				queryClient.invalidateQueries({ queryKey: ['tours'] });
-
-				return newTour;
+			if (currentTokens < 300) {
+				toast.error('Token balance is too low....');
+				return;
 			}
-			toast.error('Invalid Input. No matching city was found...');
-			return null;
+
+			const newTour = await generateTourResponse(destination);
+
+			if (!newTour) {
+				toast.error('Invalid Input. No matching city was found...');
+				return null;
+			}
+
+			// Create new tour
+			const response = await createNewTour(newTour.tour);
+
+			// Invalidate cache
+			queryClient.invalidateQueries({ queryKey: ['tours'] });
+
+			// Subtract tokens
+			const newTokens = await subtractTokens(userId, newTour.tokens);
+
+			toast.success(`${newTokens} tokens are remaining...`);
+
+			return newTour.tour;
 		}
 	});
 
