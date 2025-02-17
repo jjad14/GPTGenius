@@ -2,6 +2,7 @@
 
 import OpenAI from 'openai';
 import prisma from './db';
+import { revalidatePath } from 'next/cache';
 
 const openai = new OpenAI({
 	apiKey: process.env.OPENAI_API_KEY
